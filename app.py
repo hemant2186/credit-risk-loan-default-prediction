@@ -1,21 +1,19 @@
-import shap
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import shap
 
-# Load artifacts
-model = joblib.load("models/credit_risk_model.pkl")
-scaler = joblib.load("models/scaler.pkl")
-feature_columns = joblib.load("models/feature_columns.pkl")
-
+# --------------------------------------------------
+# Page Config
+# --------------------------------------------------
 st.set_page_config(page_title="Credit Risk Predictor", layout="centered")
-
 st.title("💳 Credit Risk / Loan Default Prediction")
+
 st.write(
     """
-    This application predicts the **probability of loan default** using a
-    machine learning model trained on real-world banking data.
+    This application predicts the **probability of loan default**
+    using a machine learning model trained on real-world banking data.
 
     The system is designed to **support data-driven loan approval decisions**
     while balancing **risk management and business growth**.
@@ -23,7 +21,7 @@ st.write(
 )
 
 # --------------------------------------------------
-# Load trained artifacts
+# Load Trained Artifacts (Cached)
 # --------------------------------------------------
 @st.cache_resource
 def load_artifacts():
@@ -73,25 +71,21 @@ def get_user_input():
 input_df = get_user_input()
 
 # --------------------------------------------------
-# Feature Engineering (MUST MATCH TRAINING LOGIC)
+# Feature Engineering (Must Match Training)
 # --------------------------------------------------
 def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    # Financial ratios
     df["CREDIT_INCOME_RATIO"] = df["AMT_CREDIT"] / df["AMT_INCOME_TOTAL"]
     df["ANNUITY_INCOME_RATIO"] = df["AMT_ANNUITY"] / df["AMT_INCOME_TOTAL"]
     df["CREDIT_ANNUITY_RATIO"] = df["AMT_CREDIT"] / df["AMT_ANNUITY"]
 
-    # Age & employment features
     df["AGE_YEARS"] = (-df["DAYS_BIRTH"]) / 365
     df["EMPLOYMENT_YEARS"] = (-df["DAYS_EMPLOYED"]) / 365
     df["EMPLOYMENT_AGE_RATIO"] = df["EMPLOYMENT_YEARS"] / df["AGE_YEARS"]
 
-    # Household-level feature
     df["INCOME_PER_PERSON"] = df["AMT_INCOME_TOTAL"] / df["CNT_FAM_MEMBERS"]
 
-    # Handle invalid values
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.fillna(df.median(), inplace=True)
 
@@ -102,69 +96,52 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
 # --------------------------------------------------
 if st.button("🔍 Predict Credit Risk"):
     processed_df = feature_engineering(input_df)
-
-    # Ensure feature consistency with training
     processed_df = pd.get_dummies(processed_df)
     processed_df = processed_df.reindex(columns=feature_columns, fill_value=0)
 
-    # Scale features
     processed_scaled = scaler.transform(processed_df)
-
-    # Predict probability
     probability = model.predict_proba(processed_scaled)[0][1]
 
     st.subheader("📊 Prediction Result")
     st.write(f"**Probability of Default:** `{probability:.2f}`")
 
     # --------------------------------------------------
-# SHAP Explainability
-# --------------------------------------------------
-st.subheader("🧠 Why this prediction?")
+    # SHAP Explainability
+    # --------------------------------------------------
+    st.subheader("🧠 Why this prediction?")
 
-try:
-    explainer = shap.Explainer(model, processed_scaled)
-    shap_values = explainer(processed_scaled)
+    try:
+        if hasattr(model, "coef_"):
+            explainer = shap.LinearExplainer(model, processed_scaled)
+            shap_values = explainer(processed_scaled)
+            values = shap_values[0]
+        else:
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(processed_scaled)
+            values = shap_values[1][0]
 
-    shap_df = pd.Series(
-        shap_values.values[0],
-        index=feature_columns
-    ).sort_values(key=abs, ascending=False)
+        shap_df = pd.Series(values, index=feature_columns)
+        shap_df = shap_df.sort_values(key=abs, ascending=False)
 
-    top_features = shap_df.head(5)
+        for feature, value in shap_df.head(5).items():
+            direction = "increases" if value > 0 else "decreases"
+            st.write(f"- **{feature}** {direction} default risk")
 
-    st.write("Top factors influencing this decision:")
-
-    for feature, value in top_features.items():
-        direction = "increased" if value > 0 else "decreased"
-        st.write(f"- **{feature}** {direction} default risk")
-
-except Exception:
-    st.info("SHAP explanation not available for this model type.")
-
+    except Exception:
+        st.info("SHAP explanation not available for this prediction.")
 
     # --------------------------------------------------
     # Business Decision Logic
     # --------------------------------------------------
     if probability < 0.30:
-        st.success("🟢 **Low Risk** — Loan Approved")
-        st.write(
-            "The applicant shows a low probability of default. "
-            "The loan can be approved with standard checks."
-        )
-
+        st.success("🟢 Low Risk — Loan Approved")
+        st.write("The applicant shows a low probability of default.")
     elif probability < 0.60:
-        st.warning("🟡 **Medium Risk** — Manual Review Required")
-        st.write(
-            "The applicant has a moderate risk profile. "
-            "Further verification or human review is recommended."
-        )
-
+        st.warning("🟡 Medium Risk — Manual Review Required")
+        st.write("Further verification is recommended.")
     else:
-        st.error("🔴 **High Risk** — Loan Rejected")
-        st.write(
-            "The applicant shows a high probability of default. "
-            "Approving this loan may result in financial loss."
-        )
+        st.error("🔴 High Risk — Loan Rejected")
+        st.write("Approving this loan may result in financial loss.")
 
 # --------------------------------------------------
 # Footer
@@ -175,7 +152,6 @@ st.markdown(
     **Author:** Hemant Kumar  
     *B.Tech Student | Aspiring Data Analyst*  
 
-    This tool is intended to **assist decision-making** and should not
-    replace human judgment.
+    This tool assists decision-making and should not replace human judgment.
     """
 )
