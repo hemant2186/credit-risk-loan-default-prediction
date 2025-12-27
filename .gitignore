@@ -1,6 +1,8 @@
 __pycache__/
 .ipynb_checkpoints/
 .env
-*.pkl
-*.csv
 .DS_Store
+#Ignore datasets
+data/raw/
+data/processed/
+#Ignore dataset

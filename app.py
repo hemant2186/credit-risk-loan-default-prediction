@@ -4,37 +4,29 @@ import pandas as pd
 import numpy as np
 import joblib
 
-# --------------------------------------------------
-# Page configuration
-# --------------------------------------------------
-st.set_page_config(
-    page_title="Credit Risk / Loan Default Prediction",
-    page_icon="💳",
-    layout="centered"
-)
+# Load artifacts
+model = joblib.load("models/credit_risk_model.pkl")
+scaler = joblib.load("models/scaler.pkl")
+feature_columns = joblib.load("models/feature_columns.pkl")
+
+st.set_page_config(page_title="Credit Risk Predictor", layout="centered")
 
 st.title("💳 Credit Risk / Loan Default Prediction")
 st.write(
     """
     This application predicts the **probability of loan default** using a
-    **pre-trained machine learning model** built on real-world banking data.
+    machine learning model trained on real-world banking data.
 
     The system is designed to **support data-driven loan approval decisions**
-    while balancing **risk management and business growth**, with a strong
-    emphasis on **interpretability and transparency**.
+    while balancing **risk management and business growth**.
     """
 )
 
 # --------------------------------------------------
-# Load trained artifacts (NO DATASET REQUIRED)
+# Load trained artifacts
 # --------------------------------------------------
 @st.cache_resource
 def load_artifacts():
-    """
-    Load pre-trained model artifacts.
-    Training is performed offline. Only model artifacts
-    are used during deployment (industry best practice).
-    """
     model = joblib.load("models/credit_risk_model.pkl")
     scaler = joblib.load("models/scaler.pkl")
     feature_columns = joblib.load("models/feature_columns.pkl")
