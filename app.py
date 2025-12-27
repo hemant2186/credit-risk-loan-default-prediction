@@ -16,18 +16,24 @@ st.title("💳 Credit Risk / Loan Default Prediction")
 st.write(
     """
     This application predicts the **probability of loan default** using a
-    machine learning model trained on real-world banking data.
+    **pre-trained machine learning model** built on real-world banking data.
 
     The system is designed to **support data-driven loan approval decisions**
-    while balancing **risk management and business growth**.
+    while balancing **risk management and business growth**, with a strong
+    emphasis on **interpretability and transparency**.
     """
 )
 
 # --------------------------------------------------
-# Load trained artifacts
+# Load trained artifacts (NO DATASET REQUIRED)
 # --------------------------------------------------
 @st.cache_resource
 def load_artifacts():
+    """
+    Load pre-trained model artifacts.
+    Training is performed offline. Only model artifacts
+    are used during deployment (industry best practice).
+    """
     model = joblib.load("models/credit_risk_model.pkl")
     scaler = joblib.load("models/scaler.pkl")
     feature_columns = joblib.load("models/feature_columns.pkl")
@@ -74,21 +80,25 @@ def get_user_input():
 input_df = get_user_input()
 
 # --------------------------------------------------
-# Feature Engineering (Same as Training)
+# Feature Engineering (MUST MATCH TRAINING LOGIC)
 # --------------------------------------------------
-def feature_engineering(df):
+def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
+    # Financial ratios
     df["CREDIT_INCOME_RATIO"] = df["AMT_CREDIT"] / df["AMT_INCOME_TOTAL"]
     df["ANNUITY_INCOME_RATIO"] = df["AMT_ANNUITY"] / df["AMT_INCOME_TOTAL"]
     df["CREDIT_ANNUITY_RATIO"] = df["AMT_CREDIT"] / df["AMT_ANNUITY"]
 
+    # Age & employment features
     df["AGE_YEARS"] = (-df["DAYS_BIRTH"]) / 365
     df["EMPLOYMENT_YEARS"] = (-df["DAYS_EMPLOYED"]) / 365
     df["EMPLOYMENT_AGE_RATIO"] = df["EMPLOYMENT_YEARS"] / df["AGE_YEARS"]
 
+    # Household-level feature
     df["INCOME_PER_PERSON"] = df["AMT_INCOME_TOTAL"] / df["CNT_FAM_MEMBERS"]
 
+    # Handle invalid values
     df.replace([np.inf, -np.inf], np.nan, inplace=True)
     df.fillna(df.median(), inplace=True)
 
@@ -100,11 +110,14 @@ def feature_engineering(df):
 if st.button("🔍 Predict Credit Risk"):
     processed_df = feature_engineering(input_df)
 
+    # Ensure feature consistency with training
     processed_df = pd.get_dummies(processed_df)
     processed_df = processed_df.reindex(columns=feature_columns, fill_value=0)
 
+    # Scale features
     processed_scaled = scaler.transform(processed_df)
 
+    # Predict probability
     probability = model.predict_proba(processed_scaled)[0][1]
 
     st.subheader("📊 Prediction Result")
