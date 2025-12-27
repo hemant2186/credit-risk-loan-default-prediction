@@ -125,6 +125,32 @@ if st.button("🔍 Predict Credit Risk"):
     st.write(f"**Probability of Default:** `{probability:.2f}`")
 
     # --------------------------------------------------
+# SHAP Explainability
+# --------------------------------------------------
+st.subheader("🧠 Why this prediction?")
+
+try:
+    explainer = shap.Explainer(model, processed_scaled)
+    shap_values = explainer(processed_scaled)
+
+    shap_df = pd.Series(
+        shap_values.values[0],
+        index=feature_columns
+    ).sort_values(key=abs, ascending=False)
+
+    top_features = shap_df.head(5)
+
+    st.write("Top factors influencing this decision:")
+
+    for feature, value in top_features.items():
+        direction = "increased" if value > 0 else "decreased"
+        st.write(f"- **{feature}** {direction} default risk")
+
+except Exception:
+    st.info("SHAP explanation not available for this model type.")
+
+
+    # --------------------------------------------------
     # Business Decision Logic
     # --------------------------------------------------
     if probability < 0.30:
