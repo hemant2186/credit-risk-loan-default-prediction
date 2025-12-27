@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import shap
 
 # --------------------------------------------------
 # Page Config
@@ -33,28 +32,54 @@ def load_artifacts():
 model, scaler, feature_columns = load_artifacts()
 
 # --------------------------------------------------
-# Sidebar – User Input
+# Sidebar – User Input (REALISTIC CONSTRAINTS)
 # --------------------------------------------------
 st.sidebar.header("🧾 Applicant Information")
 
 def get_user_input():
     income = st.sidebar.number_input(
-        "Total Annual Income", min_value=10000, value=300000, step=10000
+        "Total Annual Income (₹)",
+        min_value=100000,
+        max_value=5000000,
+        value=500000,
+        step=25000
     )
+
     credit = st.sidebar.number_input(
-        "Loan Amount", min_value=10000, value=500000, step=10000
+        "Loan Amount Requested (₹)",
+        min_value=50000,
+        max_value=10000000,
+        value=500000,
+        step=50000
     )
+
     annuity = st.sidebar.number_input(
-        "Annual Annuity", min_value=1000, value=30000, step=1000
+        "Annual EMI / Annuity (₹)",
+        min_value=12000,
+        max_value=1000000,
+        value=60000,
+        step=5000
     )
-    age = st.sidebar.number_input(
-        "Age (years)", min_value=18, max_value=80, value=30
+
+    age = st.sidebar.slider(
+        "Age (years)",
+        min_value=21,
+        max_value=65,
+        value=30
     )
-    employment_years = st.sidebar.number_input(
-        "Employment Duration (years)", min_value=0.0, value=5.0, step=0.5
+
+    employment_years = st.sidebar.slider(
+        "Employment Duration (years)",
+        min_value=0,
+        max_value=40,
+        value=5
     )
-    family_members = st.sidebar.number_input(
-        "Number of Family Members", min_value=1, value=3
+
+    family_members = st.sidebar.slider(
+        "Number of Family Members",
+        min_value=1,
+        max_value=10,
+        value=3
     )
 
     data = {
@@ -69,6 +94,29 @@ def get_user_input():
     return pd.DataFrame([data])
 
 input_df = get_user_input()
+
+# --------------------------------------------------
+# Business Validation (BLOCK UNREALISTIC CASES)
+# --------------------------------------------------
+def validate_inputs(df):
+    age = -df["DAYS_BIRTH"].iloc[0] / 365
+    employment = -df["DAYS_EMPLOYED"].iloc[0] / 365
+    income = df["AMT_INCOME_TOTAL"].iloc[0]
+    credit = df["AMT_CREDIT"].iloc[0]
+    annuity = df["AMT_ANNUITY"].iloc[0]
+
+    issues = []
+
+    if employment > (age - 18):
+        issues.append("Employment duration exceeds realistic working age.")
+
+    if credit > income * 10:
+        issues.append("Loan amount is unusually high compared to income.")
+
+    if annuity > income * 0.6:
+        issues.append("Annual EMI exceeds 60% of income.")
+
+    return issues
 
 # --------------------------------------------------
 # Feature Engineering (Must Match Training)
@@ -92,9 +140,30 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # --------------------------------------------------
+# Explanation Logic (STABLE & ALWAYS WORKS)
+# --------------------------------------------------
+def explain_prediction(model, input_df, feature_columns):
+    if hasattr(model, "coef_"):
+        contributions = model.coef_[0] * input_df.values[0]
+    else:
+        contributions = model.feature_importances_ * input_df.values[0]
+
+    explanation = pd.Series(contributions, index=feature_columns)
+    explanation = explanation.sort_values(key=abs, ascending=False)
+
+    return explanation.head(5)
+
+# --------------------------------------------------
 # Prediction
 # --------------------------------------------------
 if st.button("🔍 Predict Credit Risk"):
+
+    issues = validate_inputs(input_df)
+    if issues:
+        for issue in issues:
+            st.warning(issue)
+        st.stop()
+
     processed_df = feature_engineering(input_df)
     processed_df = pd.get_dummies(processed_df)
     processed_df = processed_df.reindex(columns=feature_columns, fill_value=0)
@@ -105,43 +174,48 @@ if st.button("🔍 Predict Credit Risk"):
     st.subheader("📊 Prediction Result")
     st.write(f"**Probability of Default:** `{probability:.2f}`")
 
+    if probability < 0.01:
+        st.info(
+            "ℹ️ The model predicts an extremely low default risk due to strong "
+            "financial indicators. Values are rounded for display."
+        )
+
     # --------------------------------------------------
-    # SHAP Explainability
+    # Explanation
     # --------------------------------------------------
     st.subheader("🧠 Why this prediction?")
 
-    try:
-        if hasattr(model, "coef_"):
-            explainer = shap.LinearExplainer(model, processed_scaled)
-            shap_values = explainer(processed_scaled)
-            values = shap_values[0]
-        else:
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(processed_scaled)
-            values = shap_values[1][0]
+    top_factors = explain_prediction(model, processed_df, feature_columns)
 
-        shap_df = pd.Series(values, index=feature_columns)
-        shap_df = shap_df.sort_values(key=abs, ascending=False)
-
-        for feature, value in shap_df.head(5).items():
-            direction = "increases" if value > 0 else "decreases"
-            st.write(f"- **{feature}** {direction} default risk")
-
-    except Exception:
-        st.info("SHAP explanation not available for this prediction.")
+    for feature, value in top_factors.items():
+        direction = "increases" if value > 0 else "decreases"
+        st.write(f"- **{feature}** {direction} default risk")
 
     # --------------------------------------------------
-    # Business Decision Logic
+    # Business Decision Recommendation
     # --------------------------------------------------
+    st.subheader("🏦 Credit Decision Recommendation")
+
     if probability < 0.30:
-        st.success("🟢 Low Risk — Loan Approved")
-        st.write("The applicant shows a low probability of default.")
+        st.success("🟢 Low Risk — Eligible for Approval")
+        st.write(
+            "The applicant shows a low probability of default. "
+            "Final approval is subject to standard verification checks."
+        )
+
     elif probability < 0.60:
-        st.warning("🟡 Medium Risk — Manual Review Required")
-        st.write("Further verification is recommended.")
+        st.warning("🟡 Medium Risk — Manual Review Recommended")
+        st.write(
+            "The applicant presents moderate credit risk. "
+            "Additional verification is advised."
+        )
+
     else:
-        st.error("🔴 High Risk — Loan Rejected")
-        st.write("Approving this loan may result in financial loss.")
+        st.error("🔴 High Risk — Approval Not Recommended")
+        st.write(
+            "The applicant shows a high probability of default. "
+            "Approving this loan may result in financial loss."
+        )
 
 # --------------------------------------------------
 # Footer
