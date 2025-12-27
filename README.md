@@ -117,6 +117,14 @@ https://credit-risk-loan-default-prediction.onrender.com
 
 ---
 
+## 📂 Project Structure
+- notebooks/ → EDA & experimentation
+- src/ → reusable ML logic
+- models/ → trained artifacts
+- app.py → Streamlit deployment
+
+---
+
 ## 👤 Author
 **Hemant Kumar**  
 B.Tech Student | Aspiring Data Analyst  
