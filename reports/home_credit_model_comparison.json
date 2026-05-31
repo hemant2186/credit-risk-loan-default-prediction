@@ -1,0 +1,72 @@
+{
+  "dataset_shape": [
+    307511,
+    324
+  ],
+  "default_rate": 0.080729,
+  "models": {
+    "logistic_regression": {
+      "name": "logistic_regression",
+      "accuracy": 0.7471993236102304,
+      "precision": 0.18297285962494758,
+      "recall": 0.6151057401812688,
+      "f1": 0.2820465459918729,
+      "roc_auc": 0.7548635987659487,
+      "confusion_matrix": [
+        [
+          42901,
+          13637
+        ],
+        [
+          1911,
+          3054
+        ]
+      ]
+    },
+    "random_forest": {
+      "name": "random_forest",
+      "accuracy": 0.6473993138546087,
+      "precision": 0.1398974889089891,
+      "recall": 0.6541792547834844,
+      "f1": 0.23050173869846002,
+      "roc_auc": 0.7069405182558285,
+      "confusion_matrix": [
+        [
+          36569,
+          19969
+        ],
+        [
+          1717,
+          3248
+        ]
+      ]
+    },
+    "xgboost": {
+      "name": "xgboost",
+      "accuracy": 0.7300294294587256,
+      "precision": 0.18531336181257774,
+      "recall": 0.6902316213494462,
+      "f1": 0.2921817716770398,
+      "roc_auc": 0.7812291010721091,
+      "confusion_matrix": [
+        [
+          41472,
+          15066
+        ],
+        [
+          1538,
+          3427
+        ]
+      ]
+    }
+  },
+  "best_model_by_roc_auc": {
+    "name": "xgboost",
+    "path": "models\\home_credit_xgboost.joblib"
+  },
+  "project_strengths": [
+    "multi-table feature engineering across application, bureau, POS cash, credit card, and installment histories",
+    "class-imbalance aware evaluation using ROC-AUC, precision, recall, and F1",
+    "saved production-ready pipeline artifact for reproducible scoring"
+  ]
+}

@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local secrets and notebooks
+.env
+.env.*
+.ipynb_checkpoints/
+
+# Large raw competition files
+data/raw/home_credit/*.csv
+!data/raw/home_credit/README.md
+data/raw/*.zip
+
+# Keep portfolio artifacts, but avoid accidental local exports
+exports/
+*.log

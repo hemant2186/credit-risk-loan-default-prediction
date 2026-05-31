@@ -1,0 +1,21 @@
+{
+  "roc_auc": 0.781229,
+  "model_used": "xgboost",
+  "recommended_threshold_f1": 0.7,
+  "recommended_threshold_business": 0.55,
+  "best_f1_metrics": {
+    "threshold": 0.7,
+    "accuracy": 0.8808,
+    "precision": 0.3027,
+    "recall": 0.366,
+    "f1": 0.3313
+  },
+  "business_metrics": {
+    "threshold": 0.55,
+    "accuracy": 0.7781,
+    "precision": 0.2076,
+    "recall": 0.6205,
+    "f1": 0.3111
+  },
+  "business_note": "Lower thresholds catch more risky borrowers but generate more false alarms. Higher thresholds are stricter and usually improve precision while lowering recall."
+}
