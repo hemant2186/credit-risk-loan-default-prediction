@@ -99,6 +99,20 @@ Interpretation:
 - `0.70` is the stronger balanced threshold for the best model if you care more about F1.
 - `0.55` is a more recall-friendly business threshold that still keeps precision above `0.20`.
 
+## Project Screenshots
+
+### Model comparison
+
+![Model comparison](reports/home_credit_model_comparison.png)
+
+### Threshold tradeoff
+
+![Threshold tradeoff](reports/home_credit_threshold_tradeoff.png)
+
+### Feature importance
+
+![Feature importance](reports/home_credit_feature_importance.png)
+
 ## Key Files
 
 - [src/train_home_credit.py](src/train_home_credit.py): multi-table feature engineering, model training, and comparison
