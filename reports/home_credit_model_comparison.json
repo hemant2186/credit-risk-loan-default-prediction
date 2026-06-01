@@ -62,7 +62,7 @@
   },
   "best_model_by_roc_auc": {
     "name": "xgboost",
-    "path": "models\\home_credit_xgboost.joblib"
+    "path": "models/home_credit_xgboost.joblib"
   },
   "project_strengths": [
     "multi-table feature engineering across application, bureau, POS cash, credit card, and installment histories",

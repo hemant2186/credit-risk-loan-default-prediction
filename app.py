@@ -67,15 +67,28 @@ def resolve_model_path(path_text: str | None) -> Path:
     if not path_text:
         return BASE_DIR / "models" / "home_credit_xgboost.joblib"
 
-    candidate = Path(path_text)
+    normalized_path_text = path_text.replace("\\", "/")
+    candidate = Path(normalized_path_text)
     if candidate.exists():
         return candidate
 
-    relative_candidate = BASE_DIR / path_text
+    relative_candidate = BASE_DIR / normalized_path_text
     if relative_candidate.exists():
         return relative_candidate
 
     return candidate
+
+
+def get_model_or_stop(best_model_path: str | None):
+    resolved_path = resolve_model_path(best_model_path)
+    if not resolved_path.exists():
+        st.error(
+            "The trained model artifact is missing from this deployment. "
+            f"Expected model file: `{resolved_path}`. "
+            "Make sure `models/home_credit_xgboost.joblib` is committed and available in GitHub."
+        )
+        st.stop()
+    return load_model(str(resolved_path))
 
 
 def get_required_features(model) -> list[str]:
@@ -309,7 +322,7 @@ def main() -> None:
     threshold_table = pd.read_csv(HOME_CREDIT_THRESHOLD_CSV) if HOME_CREDIT_THRESHOLD_CSV.exists() else pd.DataFrame()
     best_model_path = model_report.get("best_model_by_roc_auc", {}).get("path")
 
-    model = load_model(str(resolve_model_path(best_model_path)))
+    model = get_model_or_stop(best_model_path)
     demo_df = load_demo_data()
 
     recommended_threshold = threshold_summary.get("recommended_threshold_business", 0.55)

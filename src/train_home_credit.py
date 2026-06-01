@@ -467,7 +467,7 @@ def _save_model_report(
     model_map = {metrics["name"]: metrics for metrics in metrics_list}
     best_metrics = max(metrics_list, key=lambda item: item["roc_auc"])
     try:
-        model_path_for_report = str(Path(best_model_path).resolve().relative_to(BASE_DIR))
+        model_path_for_report = Path(best_model_path).resolve().relative_to(BASE_DIR).as_posix()
     except ValueError:
         model_path_for_report = best_model_path
 
