@@ -14,6 +14,18 @@ CreditRisk AI is a deployable Streamlit SaaS-style product for borrower default-
 - Single-applicant review workflow
 - Model comparison, threshold reports, and feature importance
 - Deployment-ready Streamlit configuration
+- Cloud-safe fallback model for deployment compatibility
+
+## Internship Readiness
+
+This project is strong enough to showcase for data science and machine learning internships because it demonstrates:
+
+- End-to-end ML delivery, from raw multi-table data to a deployed user-facing product
+- Feature engineering across application, bureau, installment, POS cash, and credit card histories
+- Imbalanced classification evaluation using precision, recall, F1, and ROC-AUC
+- Decision-threshold tuning for real lending tradeoffs
+- Model explainability through feature-importance reporting
+- Practical deployment work on Streamlit Cloud with reproducible dependency pinning
 
 ## Tech Stack
 
@@ -86,6 +98,13 @@ Engineered dataset:
 
 
 **Best Saved Model:** `models/home_credit_xgboost.joblib`
+
+### Deployment Status
+
+- Live app: https://credit-risk-loan.streamlit.app/
+- Primary trained model: XGBoost pipeline saved in `models/home_credit_xgboost.joblib`
+- Cloud fallback: Logistic Regression trained from packaged demo applicants if the hosted Python runtime cannot unpickle the saved XGBoost artifact
+- Recommended Streamlit Cloud runtime: Python `3.11`
 
 ### Threshold Tuning
 
@@ -164,6 +183,13 @@ Recommended cloud setup:
 - Repository: `hemant2186/credit-risk-loan-default-prediction`
 - Branch: `main`
 - Main file: `app.py`
+
+## Resume Bullets
+
+- Built and deployed **CreditRisk AI**, a Streamlit SaaS-style app for batch borrower default-risk scoring, threshold policy testing, and downloadable lending decisions.
+- Engineered borrower-level features from the Kaggle Home Credit dataset across application, bureau, installment, POS cash, credit card, and previous-application tables.
+- Compared Logistic Regression, Random Forest, and XGBoost on an imbalanced credit-risk problem, achieving best ROC-AUC of `0.781` with threshold tuning for business tradeoffs.
+- Added model explainability reports, deployment configuration, and cloud-safe fallback behavior for a reliable public demo.
 
 ## Resume Links
 
