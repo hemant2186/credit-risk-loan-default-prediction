@@ -56,15 +56,19 @@ This project is strong enough to showcase for data science and machine learning 
 
 ```mermaid
 flowchart LR
-    A[Home Credit raw tables] --> B[Feature engineering]
-    B --> C[Model training]
-    C --> D[XGBoost model artifact]
-    D --> E[Streamlit SaaS app]
-    E --> F[Batch scoring]
-    E --> G[Applicant review]
-    E --> H[Monitoring and audit exports]
-    D --> I[FastAPI scoring endpoint]
-    C --> J[Reports: metrics, thresholds, feature importance, fairness]
+    A["Home Credit Raw Tables"] --> B["Feature Engineering"]
+    B --> C["Model Training"]
+    C --> D["XGBoost Model Artifact"]
+
+    D --> E["Streamlit SaaS App"]
+
+    E --> F["Batch Scoring"]
+    E --> G["Applicant Review"]
+    E --> H["Monitoring and Audit Exports"]
+
+    D --> I["FastAPI Scoring Endpoint"]
+
+    C --> J["Reports"]
 ```
 
 ## Project Structure
