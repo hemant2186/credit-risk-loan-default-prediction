@@ -12,7 +12,10 @@ Official guide: https://docs.streamlit.io/deploy/streamlit-community-cloud/deplo
    - Repository: `hemant2186/credit-risk-loan-default-prediction`
    - Branch: `main`
    - Main file path: `app.py`
-4. Deploy.
+4. In Advanced settings, select Python `3.11` when available.
+5. Deploy.
+
+If the app runs on Python `3.14`, the saved XGBoost artifact may not unpickle cleanly. The app includes a cloud-safe fallback model so users can still score applicants, but Python `3.11` is recommended for the trained XGBoost pipeline.
 
 The app uses:
 

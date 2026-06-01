@@ -6,6 +6,11 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import streamlit as st
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from src.config import (
     BASE_DIR,
@@ -63,6 +68,43 @@ def load_model(model_path: str):
     return joblib.load(model_path)
 
 
+@st.cache_resource(show_spinner=False)
+def train_cloud_fallback_model() -> Pipeline:
+    demo_df = load_demo_data()
+    target = demo_df["TARGET"]
+    features = demo_df.drop(columns=["TARGET", "SK_ID_CURR"], errors="ignore")
+
+    numeric_features = features.select_dtypes(include=["number"]).columns.tolist()
+    categorical_features = features.select_dtypes(exclude=["number"]).columns.tolist()
+
+    numeric_pipeline = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler()),
+        ]
+    )
+    categorical_pipeline = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("encoder", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", numeric_pipeline, numeric_features),
+            ("cat", categorical_pipeline, categorical_features),
+        ]
+    )
+    pipeline = Pipeline(
+        steps=[
+            ("preprocessor", preprocessor),
+            ("classifier", LogisticRegression(max_iter=1000, class_weight="balanced")),
+        ]
+    )
+    pipeline.fit(features, target)
+    return pipeline
+
+
 def resolve_model_path(path_text: str | None) -> Path:
     if not path_text:
         return BASE_DIR / "models" / "home_credit_xgboost.joblib"
@@ -88,7 +130,15 @@ def get_model_or_stop(best_model_path: str | None):
             "Make sure `models/home_credit_xgboost.joblib` is committed and available in GitHub."
         )
         st.stop()
-    return load_model(str(resolved_path))
+    try:
+        return load_model(str(resolved_path)), "xgboost"
+    except Exception:
+        st.warning(
+            "The saved XGBoost model could not be loaded in this cloud runtime, so the app is using "
+            "a cloud-safe fallback model trained from the packaged demo applicants. For best accuracy, "
+            "set the Streamlit Cloud Python version to 3.11 in Advanced settings and reboot the app."
+        )
+        return train_cloud_fallback_model(), "cloud_fallback_logistic"
 
 
 def get_required_features(model) -> list[str]:
@@ -322,12 +372,13 @@ def main() -> None:
     threshold_table = pd.read_csv(HOME_CREDIT_THRESHOLD_CSV) if HOME_CREDIT_THRESHOLD_CSV.exists() else pd.DataFrame()
     best_model_path = model_report.get("best_model_by_roc_auc", {}).get("path")
 
-    model = get_model_or_stop(best_model_path)
+    model, active_model_source = get_model_or_stop(best_model_path)
     demo_df = load_demo_data()
 
     recommended_threshold = threshold_summary.get("recommended_threshold_business", 0.55)
     threshold = st.sidebar.slider("Decision threshold", 0.10, 0.90, float(recommended_threshold), 0.05)
     st.sidebar.caption("Lower thresholds catch more potential defaults. Higher thresholds reduce false alarms.")
+    st.sidebar.caption(f"Active model: {active_model_source}")
 
     demo_scored_df, _ = score_applicants(demo_df.drop(columns=["TARGET"], errors="ignore"), model, threshold)
 
