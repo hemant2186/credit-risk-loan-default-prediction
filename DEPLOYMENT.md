@@ -4,6 +4,8 @@ This project is packaged as a Streamlit SaaS-style product called **CreditRisk A
 
 ## Recommended: Streamlit Community Cloud
 
+Official guide: https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy
+
 1. Push the repository to GitHub.
 2. Go to Streamlit Community Cloud.
 3. Create a new app from this repository:
