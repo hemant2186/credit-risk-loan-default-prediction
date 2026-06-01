@@ -1,12 +1,17 @@
-# Credit Risk Loan Default Prediction
+# CreditRisk AI - Credit Risk SaaS
 
-A machine learning project based on the Home Credit Default Risk dataset from Kaggle. The goal is to predict whether a borrower is likely to default on a loan using customer application data and historical credit records.
+CreditRisk AI is a deployable Streamlit SaaS-style product for borrower default-risk scoring. It lets lenders and analysts upload applicant CSV files, score default probability in batch, tune decision thresholds, download decisions, and inspect model performance.
 
 **Dataset:** [Home Credit Default Risk](https://www.kaggle.com/competitions/home-credit-default-risk)
 
-## Objective
+## Product Capabilities
 
-The objective of this project is to predict loan default risk using customer application data and historical credit records. The project explores feature engineering from multiple related tables and compares several machine learning models for binary classification.
+- Batch applicant scoring from uploaded CSV files
+- Downloadable scored applicant output
+- Threshold policy testing for risk teams
+- Single-applicant review workflow
+- Model comparison, threshold reports, and feature importance
+- Deployment-ready Streamlit configuration
 
 ## Tech Stack
 
@@ -18,16 +23,27 @@ The objective of this project is to predict loan default risk using customer app
 - Matplotlib
 - Streamlit
 
+## SaaS Workflow
+
+1. Upload borrower-level applicant data.
+2. The app validates/fills the model schema.
+3. The model scores default probability for every applicant.
+4. A configurable threshold maps scores into approval/review decisions.
+5. Users download scored applicants for business review.
+6. Analysts inspect feature importance and threshold tradeoffs.
+
 ## Project Structure
 
+- `.streamlit/`: Streamlit deployment configuration
 - `data/raw/home_credit/`: Kaggle competition data
 - `data/processed/`: processed artifacts for demos
 - `models/`: saved model pipelines
 - `reports/`: model comparison and threshold analysis outputs
 - `MODEL_CARD.md`: model purpose, limitations, metrics, and responsible-use notes
+- `DEPLOYMENT.md`: cloud deployment guide
 - `notebooks/`: EDA notebook for presentation
 - `src/`: training, feature engineering, and evaluation code
-- `app.py`: Streamlit demo application
+- `app.py`: SaaS-style Streamlit application
 
 ## Modeling Workflow
 
@@ -47,7 +63,7 @@ The objective of this project is to predict loan default risk using customer app
    - XGBoost
 6. Save the best-performing model
 7. Tune thresholds to reflect different lending business priorities
-8. Surface everything in a Streamlit demo
+8. Surface everything in a Streamlit product app
 9. Generate feature importance artifacts for model explainability
 
 ## Current Results
@@ -76,7 +92,7 @@ Engineered dataset:
 
 The model achieved its highest F1 score at a threshold of 0.70. A lower threshold of 0.55 improves recall and may be preferable when minimizing missed defaults is more important than precision.
 
-## Project Screenshots
+## Product Screenshots
 
 ### Model comparison
 
@@ -105,7 +121,7 @@ The model achieved its highest F1 score at a threshold of 0.70. A lower threshol
 - [reports/home_credit_threshold_summary.json](reports/home_credit_threshold_summary.json): recommended thresholds
 - [reports/home_credit_threshold_tradeoff.png](reports/home_credit_threshold_tradeoff.png): threshold tradeoff visual for GitHub or slides
 
-## How To Run
+## How To Run Locally
 
 Install dependencies:
 
@@ -135,5 +151,23 @@ Launch the Streamlit demo:
 
 ```bash
 streamlit run app.py
+```
+
+## Deploy
+
+See [DEPLOYMENT.md](DEPLOYMENT.md).
+
+Recommended cloud setup:
+
+- Repository: `hemant2186/credit-risk-loan-default-prediction`
+- Branch: `main`
+- Main file: `app.py`
+
+## Resume Link
+
+Use the GitHub project link until the cloud app URL is connected:
+
+```text
+https://github.com/hemant2186/credit-risk-loan-default-prediction
 ```
 
