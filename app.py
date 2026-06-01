@@ -212,7 +212,13 @@ def render_upload_help(template_df: pd.DataFrame) -> None:
     )
 
 
-def render_dashboard(model_report: dict, threshold_summary: dict, demo_scored_df: pd.DataFrame, threshold: float) -> None:
+def render_dashboard(
+    model_report: dict,
+    threshold_summary: dict,
+    demo_scored_df: pd.DataFrame,
+    threshold: float,
+    active_model_source: str,
+) -> None:
     st.subheader("Portfolio dashboard")
     render_metric_row(build_summary(demo_scored_df, threshold))
 
@@ -222,7 +228,8 @@ def render_dashboard(model_report: dict, threshold_summary: dict, demo_scored_df
     model_col, threshold_col = st.columns(2)
     with model_col:
         st.markdown("### Model health")
-        st.metric("Best model", best_model_name)
+        st.metric("Active model", active_model_source)
+        st.caption(f"Best trained model: {best_model_name}")
         st.metric("ROC-AUC", f"{best_model_auc:.3f}")
         st.metric("Training default rate", f"{model_report.get('default_rate', 0):.1%}")
 
@@ -387,7 +394,7 @@ def main() -> None:
     )
 
     with dashboard_tab:
-        render_dashboard(model_report, threshold_summary, demo_scored_df, threshold)
+        render_dashboard(model_report, threshold_summary, demo_scored_df, threshold, active_model_source)
 
     with batch_tab:
         render_batch_scoring(model, demo_df, threshold)

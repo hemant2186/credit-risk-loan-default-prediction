@@ -2,6 +2,8 @@
 
 CreditRisk AI is a deployable Streamlit SaaS-style product for borrower default-risk scoring. It lets lenders and analysts upload applicant CSV files, score default probability in batch, tune decision thresholds, download decisions, and inspect model performance.
 
+**Live app:** https://credit-risk-loan.streamlit.app/
+
 **Dataset:** [Home Credit Default Risk](https://www.kaggle.com/competitions/home-credit-default-risk)
 
 ## Product Capabilities
@@ -111,7 +113,7 @@ The model achieved its highest F1 score at a threshold of 0.70. A lower threshol
 - [src/train_home_credit.py](src/train_home_credit.py): multi-table feature engineering, model training, and comparison
 - [src/threshold_tuning.py](src/threshold_tuning.py): threshold tradeoff analysis
 - [src/explain_model.py](src/explain_model.py): feature importance report for the best saved model
-- [app.py](app.py): Streamlit demo
+- [app.py](app.py): SaaS-style Streamlit application
 - [MODEL_CARD.md](MODEL_CARD.md): concise model card for responsible ML discussion
 - [notebooks/home_credit_eda.ipynb](notebooks/home_credit_eda.ipynb): presentation-ready EDA notebook
 - [reports/home_credit_model_comparison.json](reports/home_credit_model_comparison.json): saved model metrics
@@ -147,7 +149,7 @@ Generate model explainability artifacts:
 python -m src.explain_model
 ```
 
-Launch the Streamlit demo:
+Launch the Streamlit app:
 
 ```bash
 streamlit run app.py
@@ -163,9 +165,15 @@ Recommended cloud setup:
 - Branch: `main`
 - Main file: `app.py`
 
-## Resume Link
+## Resume Links
 
-Use the GitHub project link until the cloud app URL is connected:
+Live product:
+
+```text
+https://credit-risk-loan.streamlit.app/
+```
+
+GitHub project:
 
 ```text
 https://github.com/hemant2186/credit-risk-loan-default-prediction
