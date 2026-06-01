@@ -15,6 +15,10 @@ CreditRisk AI is a deployable Streamlit SaaS-style product for borrower default-
 - Model comparison, threshold reports, and feature importance
 - Deployment-ready Streamlit configuration
 - Cloud-safe fallback model for deployment compatibility
+- Monitoring tab for score distribution, decision mix, and drift watchlist
+- Audit-log export for scored applicant decisions
+- Fairness summary report for group-level risk comparison
+- Optional FastAPI scoring endpoint for integration-style demos
 
 ## Internship Readiness
 
@@ -26,6 +30,7 @@ This project is strong enough to showcase for data science and machine learning 
 - Decision-threshold tuning for real lending tradeoffs
 - Model explainability through feature-importance reporting
 - Practical deployment work on Streamlit Cloud with reproducible dependency pinning
+- Production-inspired additions: monitoring, audit logs, fairness checks, and API serving
 
 ## Tech Stack
 
@@ -44,11 +49,28 @@ This project is strong enough to showcase for data science and machine learning 
 3. The model scores default probability for every applicant.
 4. A configurable threshold maps scores into approval/review decisions.
 5. Users download scored applicants for business review.
-6. Analysts inspect feature importance and threshold tradeoffs.
+6. Users download an audit log containing timestamp, threshold, model source, score, risk band, and decision.
+7. Analysts inspect feature importance, threshold tradeoffs, monitoring signals, and fairness summaries.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Home Credit raw tables] --> B[Feature engineering]
+    B --> C[Model training]
+    C --> D[XGBoost model artifact]
+    D --> E[Streamlit SaaS app]
+    E --> F[Batch scoring]
+    E --> G[Applicant review]
+    E --> H[Monitoring and audit exports]
+    D --> I[FastAPI scoring endpoint]
+    C --> J[Reports: metrics, thresholds, feature importance, fairness]
+```
 
 ## Project Structure
 
 - `.streamlit/`: Streamlit deployment configuration
+- `api.py`: optional FastAPI scoring endpoint
 - `data/raw/home_credit/`: Kaggle competition data
 - `data/processed/`: processed artifacts for demos
 - `models/`: saved model pipelines
@@ -79,6 +101,7 @@ This project is strong enough to showcase for data science and machine learning 
 7. Tune thresholds to reflect different lending business priorities
 8. Surface everything in a Streamlit product app
 9. Generate feature importance artifacts for model explainability
+10. Generate fairness and monitoring artifacts for production-style review
 
 ## Current Results
 
@@ -105,6 +128,13 @@ Engineered dataset:
 - Primary trained model: XGBoost pipeline saved in `models/home_credit_xgboost.joblib`
 - Cloud fallback: Logistic Regression trained from packaged demo applicants if the hosted Python runtime cannot unpickle the saved XGBoost artifact
 - Recommended Streamlit Cloud runtime: Python `3.11`
+
+### Production-Style Controls
+
+- Monitoring tab tracks score distribution, risk-band mix, and drift-watch features.
+- Audit log export records scoring timestamp, model source, threshold, applicant ID, score, risk band, and decision.
+- Fairness summary compares average score, high-risk rate, and observed default rate across selected applicant groups.
+- Optional API endpoint exposes `/health`, `/schema`, and `/score` for integration demos.
 
 ### Threshold Tuning
 
@@ -168,10 +198,22 @@ Generate model explainability artifacts:
 python -m src.explain_model
 ```
 
+Generate fairness summary artifacts:
+
+```bash
+python -m src.fairness_analysis
+```
+
 Launch the Streamlit app:
 
 ```bash
 streamlit run app.py
+```
+
+Run the optional API:
+
+```bash
+uvicorn api:app --reload
 ```
 
 ## Deploy
@@ -190,6 +232,7 @@ Recommended cloud setup:
 - Engineered borrower-level features from the Kaggle Home Credit dataset across application, bureau, installment, POS cash, credit card, and previous-application tables.
 - Compared Logistic Regression, Random Forest, and XGBoost on an imbalanced credit-risk problem, achieving best ROC-AUC of `0.781` with threshold tuning for business tradeoffs.
 - Added model explainability reports, deployment configuration, and cloud-safe fallback behavior for a reliable public demo.
+- Added monitoring, audit-log export, fairness summary reports, and a FastAPI scoring endpoint to make the project production-inspired.
 
 ## Resume Links
 

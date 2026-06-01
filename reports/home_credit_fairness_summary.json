@@ -1,0 +1,6 @@
+{
+  "threshold": 0.55,
+  "model_path": "models/home_credit_xgboost.joblib",
+  "rows": 15,
+  "note": "This is a portfolio fairness snapshot, not a regulatory fairness audit. A production lending system would require legally reviewed protected-class definitions, bias tests, documentation, and human oversight."
+}

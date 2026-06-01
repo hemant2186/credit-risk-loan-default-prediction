@@ -39,6 +39,20 @@ Start command:
 streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
 ```
 
+## Optional API Service
+
+Run the FastAPI scoring endpoint locally with:
+
+```bash
+uvicorn api:app --reload
+```
+
+Useful endpoints:
+
+- `GET /health`
+- `GET /schema`
+- `POST /score`
+
 ## Product Workflow
 
 Users can:

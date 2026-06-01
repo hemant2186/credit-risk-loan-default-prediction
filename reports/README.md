@@ -3,6 +3,7 @@ This folder stores portfolio-facing artifacts such as:
 - model comparison summaries
 - threshold tuning reports
 - feature-importance reports
+- fairness summary reports
 - charts and presentation-ready outputs
 
 Regenerate the main artifacts with:
@@ -11,4 +12,5 @@ Regenerate the main artifacts with:
 python -m src.train_home_credit
 python -m src.threshold_tuning
 python -m src.explain_model
+python -m src.fairness_analysis
 ```

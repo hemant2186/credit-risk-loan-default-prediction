@@ -22,3 +22,5 @@ HOME_CREDIT_MODEL_COMPARISON_PNG = REPORTS_DIR / "home_credit_model_comparison.p
 HOME_CREDIT_THRESHOLD_PNG = REPORTS_DIR / "home_credit_threshold_tradeoff.png"
 HOME_CREDIT_FEATURE_IMPORTANCE_CSV = REPORTS_DIR / "home_credit_feature_importance.csv"
 HOME_CREDIT_FEATURE_IMPORTANCE_PNG = REPORTS_DIR / "home_credit_feature_importance.png"
+HOME_CREDIT_FAIRNESS_CSV = REPORTS_DIR / "home_credit_fairness_summary.csv"
+HOME_CREDIT_FAIRNESS_JSON = REPORTS_DIR / "home_credit_fairness_summary.json"

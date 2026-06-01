@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from datetime import datetime, timezone
 
 import joblib
 import pandas as pd
@@ -17,6 +18,7 @@ from src.config import (
     HOME_CREDIT_DEMO_DATA_FILE,
     HOME_CREDIT_FEATURE_IMPORTANCE_CSV,
     HOME_CREDIT_FEATURE_IMPORTANCE_PNG,
+    HOME_CREDIT_FAIRNESS_CSV,
     HOME_CREDIT_MODEL_COMPARISON_PNG,
     HOME_CREDIT_MODEL_REPORT_FILE,
     HOME_CREDIT_THRESHOLD_CSV,
@@ -192,6 +194,23 @@ def build_summary(scored_df: pd.DataFrame, threshold: float) -> dict[str, str]:
     }
 
 
+def build_audit_log(scored_df: pd.DataFrame, threshold: float, model_source: str) -> pd.DataFrame:
+    timestamp = datetime.now(timezone.utc).isoformat()
+    id_column = "SK_ID_CURR" if "SK_ID_CURR" in scored_df.columns else None
+    audit_df = pd.DataFrame(
+        {
+            "scored_at_utc": timestamp,
+            "model_source": model_source,
+            "threshold": threshold,
+            "applicant_id": scored_df[id_column].astype(str) if id_column else scored_df.index.astype(str),
+            "default_probability": scored_df["default_probability"],
+            "risk_band": scored_df["risk_band"],
+            "decision": scored_df["decision"],
+        }
+    )
+    return audit_df
+
+
 def render_metric_row(summary: dict[str, str]) -> None:
     columns = st.columns(len(summary))
     for column, (label, value) in zip(columns, summary.items()):
@@ -254,7 +273,7 @@ def render_dashboard(
     st.dataframe(demo_scored_df[existing_cols].head(25), use_container_width=True)
 
 
-def render_batch_scoring(model, demo_df: pd.DataFrame, threshold: float) -> None:
+def render_batch_scoring(model, demo_df: pd.DataFrame, threshold: float, active_model_source: str) -> None:
     st.subheader("Batch applicant scoring")
     render_upload_help(demo_df)
 
@@ -279,6 +298,13 @@ def render_batch_scoring(model, demo_df: pd.DataFrame, threshold: float) -> None
         "Download scored applicants",
         data=dataframe_to_csv_bytes(scored_df),
         file_name="creditrisk_scored_applicants.csv",
+        mime="text/csv",
+    )
+    audit_df = build_audit_log(scored_df, threshold, active_model_source)
+    st.download_button(
+        "Download audit log",
+        data=dataframe_to_csv_bytes(audit_df),
+        file_name="creditrisk_audit_log.csv",
         mime="text/csv",
     )
 
@@ -328,6 +354,64 @@ def render_analytics(threshold_table: pd.DataFrame) -> None:
         st.info("Run `python -m src.threshold_tuning` to generate threshold tradeoff reports.")
     else:
         st.dataframe(threshold_table, use_container_width=True)
+
+
+def render_monitoring(scored_df: pd.DataFrame, threshold: float) -> None:
+    st.subheader("Model monitoring")
+    st.write(
+        "These lightweight monitoring checks help a risk team inspect score distribution, approval policy impact, "
+        "and early signs of portfolio shift."
+    )
+
+    render_metric_row(build_summary(scored_df, threshold))
+
+    chart_col1, chart_col2 = st.columns(2)
+    with chart_col1:
+        st.markdown("### Score distribution")
+        bins = pd.cut(scored_df["default_probability"], bins=10)
+        distribution_df = (
+            scored_df.groupby(bins, observed=False)
+            .size()
+            .rename("applicants")
+            .reset_index()
+        )
+        distribution_df["score_range"] = distribution_df["default_probability"].astype(str)
+        st.bar_chart(distribution_df.set_index("score_range")["applicants"])
+
+    with chart_col2:
+        st.markdown("### Decision mix")
+        decision_mix = scored_df["risk_band"].value_counts().rename_axis("risk_band").reset_index(name="applicants")
+        st.bar_chart(decision_mix.set_index("risk_band")["applicants"])
+
+    st.markdown("### Drift watchlist")
+    watch_columns = [
+        "AMT_INCOME_TOTAL",
+        "AMT_CREDIT",
+        "AMT_ANNUITY",
+        "EXT_SOURCE_2",
+        "EXT_SOURCE_3",
+        "BUREAU_RECORD_COUNT",
+        "INST_DAYS_PAST_DUE_MEAN",
+    ]
+    existing_columns = [column for column in watch_columns if column in scored_df.columns]
+    drift_rows = []
+    for column in existing_columns:
+        series = pd.to_numeric(scored_df[column], errors="coerce")
+        drift_rows.append(
+            {
+                "feature": column,
+                "mean": round(float(series.mean()), 4),
+                "missing_rate": round(float(series.isna().mean()), 4),
+                "note": "Track against future production batches",
+            }
+        )
+    st.dataframe(pd.DataFrame(drift_rows), use_container_width=True, hide_index=True)
+
+    st.markdown("### Fairness snapshot")
+    if HOME_CREDIT_FAIRNESS_CSV.exists():
+        st.dataframe(pd.read_csv(HOME_CREDIT_FAIRNESS_CSV), use_container_width=True)
+    else:
+        st.info("Run `python -m src.fairness_analysis` to generate fairness summary artifacts.")
 
 
 def render_product_notes() -> None:
@@ -389,21 +473,24 @@ def main() -> None:
 
     demo_scored_df, _ = score_applicants(demo_df.drop(columns=["TARGET"], errors="ignore"), model, threshold)
 
-    dashboard_tab, batch_tab, applicant_tab, analytics_tab, product_tab = st.tabs(
-        ["Dashboard", "Batch Scoring", "Applicant Review", "Analytics", "Product"]
+    dashboard_tab, batch_tab, applicant_tab, analytics_tab, monitoring_tab, product_tab = st.tabs(
+        ["Dashboard", "Batch Scoring", "Applicant Review", "Analytics", "Monitoring", "Product"]
     )
 
     with dashboard_tab:
         render_dashboard(model_report, threshold_summary, demo_scored_df, threshold, active_model_source)
 
     with batch_tab:
-        render_batch_scoring(model, demo_df, threshold)
+        render_batch_scoring(model, demo_df, threshold, active_model_source)
 
     with applicant_tab:
         render_single_applicant(model, demo_df, threshold)
 
     with analytics_tab:
         render_analytics(threshold_table)
+
+    with monitoring_tab:
+        render_monitoring(demo_scored_df, threshold)
 
     with product_tab:
         render_product_notes()
