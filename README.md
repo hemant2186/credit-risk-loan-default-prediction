@@ -1,58 +1,87 @@
 # CreditRisk AI - Credit Risk SaaS
 
-CreditRisk AI is a deployable Streamlit SaaS-style product for borrower default-risk scoring. It lets lenders and analysts upload applicant CSV files, score default probability in batch, tune decision thresholds, download decisions, and inspect model performance.
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![Streamlit](https://img.shields.io/badge/Streamlit-Deployed-red)
+![XGBoost](https://img.shields.io/badge/Model-XGBoost-green)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
-**Live app:** https://credit-risk-loan.streamlit.app/
+CreditRisk AI is a deployable Streamlit SaaS-style application for borrower default-risk scoring. It enables lenders and analysts to upload applicant datasets, predict default probability in batch, tune lending thresholds, download decisions, and monitor model performance through an intuitive interface.
 
-**Dataset:** [Home Credit Default Risk](https://www.kaggle.com/competitions/home-credit-default-risk)
+<p align="center">
+  <img src="assets/app_homepage.png" width="100%">
+</p>
 
-## Product Capabilities
+## Live Demo
 
-- Batch applicant scoring from uploaded CSV files
-- Downloadable scored applicant output
-- Threshold policy testing for risk teams
-- Single-applicant review workflow
-- Model comparison, threshold reports, and feature importance
-- Deployment-ready Streamlit configuration
-- Cloud-safe fallback model for deployment compatibility
-- Monitoring tab for score distribution, decision mix, and drift watchlist
-- Audit-log export for scored applicant decisions
-- Fairness summary report for group-level risk comparison
-- Optional FastAPI scoring endpoint for integration-style demos
+**Live Application:**
+https://credit-risk-loan.streamlit.app/
 
-## Internship Readiness
+## Dataset
 
-This project is strong enough to showcase for data science and machine learning internships because it demonstrates:
+**Home Credit Default Risk (Kaggle)**
+https://www.kaggle.com/competitions/home-credit-default-risk
 
-- End-to-end ML delivery, from raw multi-table data to a deployed user-facing product
-- Feature engineering across application, bureau, installment, POS cash, and credit card histories
-- Imbalanced classification evaluation using precision, recall, F1, and ROC-AUC
-- Decision-threshold tuning for real lending tradeoffs
-- Model explainability through feature-importance reporting
-- Practical deployment work on Streamlit Cloud with reproducible dependency pinning
-- Production-inspired additions: monitoring, audit logs, fairness checks, and API serving
+The dataset contains borrower application records, bureau history, installment payments, POS cash balances, credit card balances, and previous loan applications used to predict loan default risk.
 
-## Tech Stack
 
-- Python
-- Pandas
-- NumPy
-- Scikit-learn
-- XGBoost
-- Matplotlib
-- Streamlit
+---
 
-## SaaS Workflow
+# Demo
 
-1. Upload borrower-level applicant data.
-2. The app validates/fills the model schema.
-3. The model scores default probability for every applicant.
-4. A configurable threshold maps scores into approval/review decisions.
-5. Users download scored applicants for business review.
-6. Users download an audit log containing timestamp, threshold, model source, score, risk band, and decision.
-7. Analysts inspect feature importance, threshold tradeoffs, monitoring signals, and fairness summaries.
+## Application Dashboard
 
-## Architecture
+![Application Dashboard](assets/app_homepage.png)
+
+The main dashboard provides portfolio-level credit risk insights, model health metrics, operating thresholds, and high-risk borrower summaries.
+
+---
+
+## Batch Scoring
+
+![Batch Scoring](assets/batch_scoring.png)
+
+Upload borrower datasets and generate default-risk predictions in batch with downloadable decision outputs and audit logs.
+
+---
+
+## Applicant Review
+
+![Applicant Review](assets/applicant_review.png)
+
+Review individual borrower profiles, default probabilities, and lending recommendations for manual credit review workflows.
+
+---
+
+## Analytics
+
+![Analytics](assets/analytics.png)
+
+Compare model performance, evaluate threshold tradeoffs, and inspect feature importance for model explainability.
+
+---
+
+## Monitoring Dashboard
+
+![Monitoring Dashboard](assets/monitoring_dashboard.png)
+
+Track score distributions, risk-band mix, drift-watch features, and fairness indicators to support responsible AI monitoring.
+
+
+---
+
+# Key Results
+
+* **307,511** borrower records processed
+* **324** engineered features
+* **8.1%** default rate
+* **ROC-AUC: 0.781** (Best Model)
+* **Recall: 0.690**
+* **Best Model:** XGBoost
+* **Production Features:** Monitoring, Audit Logs, Fairness Reports, FastAPI Endpoint
+
+---
+
+# Architecture
 
 ```mermaid
 flowchart TD
@@ -79,112 +108,215 @@ flowchart TD
     C --> M["Fairness Reports"]
 ```
 
-## Project Structure
+---
 
-- `.streamlit/`: Streamlit deployment configuration
-- `api.py`: optional FastAPI scoring endpoint
-- `data/raw/home_credit/`: Kaggle competition data
-- `data/processed/`: processed artifacts for demos
-- `models/`: saved model pipelines
-- `reports/`: model comparison and threshold analysis outputs
-- `MODEL_CARD.md`: model purpose, limitations, metrics, and responsible-use notes
-- `DEPLOYMENT.md`: cloud deployment guide
-- `notebooks/`: EDA notebook for presentation
-- `src/`: training, feature engineering, and evaluation code
-- `app.py`: SaaS-style Streamlit application
+# Business Impact
 
-## Modeling Workflow
+* Automates borrower risk assessment workflows.
+* Enables threshold tuning for different lending strategies.
+* Supports analyst review and decision-making.
+* Provides audit logs for governance and traceability.
+* Includes fairness and monitoring reports for responsible AI practices.
+* Demonstrates production-style machine learning deployment.
 
-1. Load `application_train.csv` as the core borrower table
-2. Aggregate behavioral features from:
-   - `previous_application.csv`
-   - `bureau.csv`
-   - `bureau_balance.csv`
-   - `installments_payments.csv`
-   - `POS_CASH_balance.csv`
-   - `credit_card_balance.csv`
-3. Merge engineered features back to the main applicant table
-4. Split into train and test sets with stratification
-5. Train and compare:
-   - Logistic Regression
-   - Random Forest
-   - XGBoost
-6. Save the best-performing model
-7. Tune thresholds to reflect different lending business priorities
-8. Surface everything in a Streamlit product app
-9. Generate feature importance artifacts for model explainability
-10. Generate fairness and monitoring artifacts for production-style review
+---
 
-## Current Results
+# Tech Stack
 
-Engineered dataset:
+* Python
+* Pandas
+* NumPy
+* Scikit-learn
+* XGBoost
+* Streamlit
+* FastAPI
+* Matplotlib
 
-- Rows: `307,511`
-- Columns: `324`
-- Default rate: about `8.1%`
+---
 
-### Model Performance
+# Product Capabilities
 
-| Model | Accuracy | Precision | Recall | F1 Score | ROC-AUC |
-|---------|---------|---------|---------|---------|---------|
-| Logistic Regression | 0.747 | 0.183 | 0.615 | 0.282 | 0.755 |
-| Random Forest | 0.647 | 0.140 | 0.654 | 0.231 | 0.707 |
-| XGBoost | 0.730 | 0.185 | 0.690 | 0.292 | 0.781 |
+* Batch applicant scoring from uploaded CSV files
+* Downloadable scored applicant output
+* Threshold policy testing
+* Single-applicant review workflow
+* Model comparison and evaluation reports
+* Feature importance reporting
+* Monitoring dashboard
+* Audit-log exports
+* Fairness summary reports
+* Optional FastAPI integration endpoint
 
+---
+
+# SaaS Workflow
+
+1. Upload borrower-level applicant data.
+2. Validate and align the schema with model requirements.
+3. Generate default-risk probabilities.
+4. Apply configurable decision thresholds.
+5. Download scored applicant decisions.
+6. Export audit logs for governance.
+7. Review monitoring and fairness reports.
+
+---
+
+# Internship Readiness
+
+This project demonstrates:
+
+* End-to-end machine learning delivery
+* Multi-table feature engineering
+* Imbalanced classification modeling
+* Business-focused threshold optimization
+* Model explainability
+* Cloud deployment and reproducibility
+* Monitoring and governance tooling
+* API serving and production-inspired architecture
+
+---
+
+# Project Structure
+
+```text
+.
+├── .streamlit/
+├── api.py
+├── app.py
+├── data/
+│   ├── raw/
+│   └── processed/
+├── models/
+├── notebooks/
+├── reports/
+├── src/
+├── MODEL_CARD.md
+├── DEPLOYMENT.md
+└── requirements.txt
+```
+
+---
+
+# Modeling Workflow
+
+1. Load `application_train.csv`
+2. Aggregate features from:
+
+   * previous_application.csv
+   * bureau.csv
+   * bureau_balance.csv
+   * installments_payments.csv
+   * POS_CASH_balance.csv
+   * credit_card_balance.csv
+3. Merge engineered features into the borrower table.
+4. Split train and test sets with stratification.
+5. Train:
+
+   * Logistic Regression
+   * Random Forest
+   * XGBoost
+6. Save the best-performing model.
+7. Tune decision thresholds.
+8. Deploy through Streamlit.
+9. Generate explainability reports.
+10. Generate fairness and monitoring artifacts.
+
+---
+
+# Model Performance
+
+| Model               | Accuracy | Precision | Recall | F1 Score | ROC-AUC |
+| ------------------- | -------- | --------- | ------ | -------- | ------- |
+| Logistic Regression | 0.747    | 0.183     | 0.615  | 0.282    | 0.755   |
+| Random Forest       | 0.647    | 0.140     | 0.654  | 0.231    | 0.707   |
+| XGBoost             | 0.730    | 0.185     | 0.690  | 0.292    | 0.781   |
 
 **Best Saved Model:** `models/home_credit_xgboost.joblib`
 
-### Deployment Status
+---
 
-- Live app: https://credit-risk-loan.streamlit.app/
-- Primary trained model: XGBoost pipeline saved in `models/home_credit_xgboost.joblib`
-- Cloud fallback: Logistic Regression trained from packaged demo applicants if the hosted Python runtime cannot unpickle the saved XGBoost artifact
-- Recommended Streamlit Cloud runtime: Python `3.11`
+# Threshold Tuning
 
-### Production-Style Controls
+* Best F1 Threshold: `0.70`
+* Business Threshold: `0.55`
 
-- Monitoring tab tracks score distribution, risk-band mix, and drift-watch features.
-- Audit log export records scoring timestamp, model source, threshold, applicant ID, score, risk band, and decision.
-- Fairness summary compares average score, high-risk rate, and observed default rate across selected applicant groups.
-- Optional API endpoint exposes `/health`, `/schema`, and `/score` for integration demos.
+The model achieves the highest F1 score at a threshold of 0.70. A lower threshold of 0.55 improves recall and may be preferable when reducing missed defaults is more important than maximizing precision.
 
-### Threshold Tuning
+---
 
-- Best F1 Threshold: `0.70`
-- Business Threshold: `0.55`
+# Deployment Status
 
-The model achieved its highest F1 score at a threshold of 0.70. A lower threshold of 0.55 improves recall and may be preferable when minimizing missed defaults is more important than precision.
+* Live App: https://credit-risk-loan.streamlit.app/
+* Primary Model: XGBoost
+* Cloud Fallback: Logistic Regression
+* Recommended Runtime: Python 3.11
 
-## Product Screenshots
+---
 
-### Model comparison
+# Production-Style Controls
+
+### Monitoring
+
+* Score distribution tracking
+* Risk-band distribution analysis
+* Drift-watch features
+
+### Audit Logging
+
+* Timestamp
+* Applicant ID
+* Threshold used
+* Risk score
+* Decision outcome
+* Model source
+
+### Fairness Analysis
+
+* Average score comparison
+* High-risk rate comparison
+* Default-rate comparison across groups
+
+### API Endpoint
+
+* `/health`
+* `/schema`
+* `/score`
+
+---
+
+# Product Screenshots
+
+### Application Dashboard
+
+*Add screenshot*
+
+### Model Comparison
 
 ![Model comparison](reports/home_credit_model_comparison.png)
 
-### Threshold tradeoff
+### Threshold Tradeoff
 
 ![Threshold tradeoff](reports/home_credit_threshold_tradeoff.png)
 
-### Feature importance
+### Feature Importance
 
 ![Feature importance](reports/home_credit_feature_importance.png)
 
-## Key Files
+---
 
-- [src/train_home_credit.py](src/train_home_credit.py): multi-table feature engineering, model training, and comparison
-- [src/threshold_tuning.py](src/threshold_tuning.py): threshold tradeoff analysis
-- [src/explain_model.py](src/explain_model.py): feature importance report for the best saved model
-- [app.py](app.py): SaaS-style Streamlit application
-- [MODEL_CARD.md](MODEL_CARD.md): concise model card for responsible ML discussion
-- [notebooks/home_credit_eda.ipynb](notebooks/home_credit_eda.ipynb): presentation-ready EDA notebook
-- [reports/home_credit_model_comparison.json](reports/home_credit_model_comparison.json): saved model metrics
-- [reports/home_credit_model_comparison.png](reports/home_credit_model_comparison.png): portfolio-ready model comparison visual
-- [reports/home_credit_feature_importance.csv](reports/home_credit_feature_importance.csv): top model features
-- [reports/home_credit_feature_importance.png](reports/home_credit_feature_importance.png): feature importance visual
-- [reports/home_credit_threshold_summary.json](reports/home_credit_threshold_summary.json): recommended thresholds
-- [reports/home_credit_threshold_tradeoff.png](reports/home_credit_threshold_tradeoff.png): threshold tradeoff visual for GitHub or slides
+# Key Files
 
-## How To Run Locally
+* `src/train_home_credit.py` — model training and feature engineering
+* `src/threshold_tuning.py` — threshold optimization
+* `src/explain_model.py` — explainability reports
+* `app.py` — Streamlit application
+* `api.py` — FastAPI endpoint
+* `MODEL_CARD.md` — model documentation
+* `DEPLOYMENT.md` — deployment instructions
+
+---
+
+# How To Run Locally
 
 Install dependencies:
 
@@ -192,7 +324,7 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-Train models and generate artifacts:
+Train models:
 
 ```bash
 python -m src.train_home_credit
@@ -204,59 +336,60 @@ Run threshold tuning:
 python -m src.threshold_tuning
 ```
 
-Generate model explainability artifacts:
+Generate explainability artifacts:
 
 ```bash
 python -m src.explain_model
 ```
 
-Generate fairness summary artifacts:
+Generate fairness reports:
 
 ```bash
 python -m src.fairness_analysis
 ```
 
-Launch the Streamlit app:
+Launch Streamlit:
 
 ```bash
 streamlit run app.py
 ```
 
-Run the optional API:
+Launch API:
 
 ```bash
 uvicorn api:app --reload
 ```
 
-## Deploy
+---
 
-See [DEPLOYMENT.md](DEPLOYMENT.md).
+# Resume Highlights
 
-Recommended cloud setup:
+* Built and deployed CreditRisk AI, a Streamlit SaaS-style credit-risk scoring platform.
+* Engineered borrower-level features across six Home Credit relational datasets.
+* Compared Logistic Regression, Random Forest, and XGBoost models, achieving ROC-AUC of 0.781.
+* Implemented threshold optimization for lending-policy tradeoffs.
+* Added monitoring, audit logging, fairness analysis, and API serving to simulate production ML systems.
 
-- Repository: `hemant2186/credit-risk-loan-default-prediction`
-- Branch: `main`
-- Main file: `app.py`
+---
 
-## Resume Bullets
+# Deployment
 
-- Built and deployed **CreditRisk AI**, a Streamlit SaaS-style app for batch borrower default-risk scoring, threshold policy testing, and downloadable lending decisions.
-- Engineered borrower-level features from the Kaggle Home Credit dataset across application, bureau, installment, POS cash, credit card, and previous-application tables.
-- Compared Logistic Regression, Random Forest, and XGBoost on an imbalanced credit-risk problem, achieving best ROC-AUC of `0.781` with threshold tuning for business tradeoffs.
-- Added model explainability reports, deployment configuration, and cloud-safe fallback behavior for a reliable public demo.
-- Added monitoring, audit-log export, fairness summary reports, and a FastAPI scoring endpoint to make the project production-inspired.
+See `DEPLOYMENT.md` for deployment instructions.
 
-## Resume Links
+Recommended Streamlit Cloud configuration:
 
-Live product:
+* Repository: `hemant2186/credit-risk-loan-default-prediction`
+* Branch: `main`
+* Main File: `app.py`
 
-```text
+---
+
+# Links
+
+**Live Application**
+
 https://credit-risk-loan.streamlit.app/
-```
 
-GitHub project:
+**GitHub Repository**
 
-```text
 https://github.com/hemant2186/credit-risk-loan-default-prediction
-```
-

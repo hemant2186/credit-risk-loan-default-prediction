@@ -133,7 +133,7 @@ def get_model_or_stop(best_model_path: str | None):
         )
         st.stop()
     try:
-        return load_model(str(resolved_path)), "xgboost"
+        return load_model(str(resolved_path)), "XGBoost"
     except Exception:
         st.warning(
             "The saved XGBoost model could not be loaded in this cloud runtime, so the app is using "
@@ -246,11 +246,26 @@ def render_dashboard(
 
     model_col, threshold_col = st.columns(2)
     with model_col:
-        st.markdown("### Model health")
-        st.metric("Active model", active_model_source)
-        st.caption(f"Best trained model: {best_model_name}")
-        st.metric("ROC-AUC", f"{best_model_auc:.3f}")
-        st.metric("Training default rate", f"{model_report.get('default_rate', 0):.1%}")
+        st.markdown("### Model Health")
+
+        st.metric(
+            "Best Model",
+            best_model_name.upper()
+        )
+
+        st.metric(
+            "ROC-AUC",
+            f"{best_model_auc:.3f}"
+        )
+
+        st.metric(
+            "Training Default Rate",
+            f"{model_report.get('default_rate', 0):.1%}"
+        )
+
+        st.caption(
+            f"Active deployment model: {active_model_source.upper()}"
+        )
 
     with threshold_col:
         st.markdown("### Operating policy")
