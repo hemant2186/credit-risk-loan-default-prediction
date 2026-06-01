@@ -1,28 +1,22 @@
 # Credit Risk Loan Default Prediction
 
-An internship-ready data science project built on Kaggle's **Home Credit Default Risk** competition data. The project predicts borrower default risk using multi-table feature engineering, model comparison, threshold tuning, explainability artifacts, and a Streamlit demo.
+A machine learning project based on the Home Credit Default Risk dataset from Kaggle. The goal is to predict whether a borrower is likely to default on a loan using customer application data and historical credit records.
 
-## Why This Project Matters
+**Dataset:** [Home Credit Default Risk](https://www.kaggle.com/competitions/home-credit-default-risk)
 
-Lenders do not just want a model with high accuracy. They need a system that helps them:
+## Objective
 
-- identify risky borrowers early
-- balance false approvals against false rejections
-- explain tradeoffs between recall and precision
-- operationalize a scoring pipeline on real applicant data
+The objective of this project is to predict loan default risk using customer application data and historical credit records. The project explores feature engineering from multiple related tables and compares several machine learning models for binary classification.
 
-This project is designed around that framing.
+## Tech Stack
 
-## What Makes This Resume-Worthy
-
-- Uses a real, industry-style Kaggle credit-risk dataset
-- Engineers features from multiple linked tables, not just one flat CSV
-- Handles class imbalance with business-relevant metrics
-- Compares multiple models, including boosting, instead of stopping at a single baseline
-- Tunes decision thresholds for lending tradeoffs
-- Adds feature-importance reporting and a model card
-- Includes a recruiter-friendly Streamlit demo
-- Includes an EDA notebook for storytelling and insight generation
+- Python
+- Pandas
+- NumPy
+- Scikit-learn
+- XGBoost
+- Matplotlib
+- Streamlit
 
 ## Project Structure
 
@@ -64,40 +58,23 @@ Engineered dataset:
 - Columns: `324`
 - Default rate: about `8.1%`
 
-Model comparison:
+### Model Performance
 
-- Logistic Regression
-  - Accuracy: `0.747`
-  - Precision: `0.183`
-  - Recall: `0.615`
-  - F1: `0.282`
-  - ROC-AUC: `0.755`
-- Random Forest
-  - Accuracy: `0.647`
-  - Precision: `0.140`
-  - Recall: `0.654`
-  - F1: `0.231`
-  - ROC-AUC: `0.707`
-- XGBoost
-  - Accuracy: `0.730`
-  - Precision: `0.185`
-  - Recall: `0.690`
-  - F1: `0.292`
-  - ROC-AUC: `0.781`
+| Model | Accuracy | Precision | Recall | F1 Score | ROC-AUC |
+|---------|---------|---------|---------|---------|---------|
+| Logistic Regression | 0.747 | 0.183 | 0.615 | 0.282 | 0.755 |
+| Random Forest | 0.647 | 0.140 | 0.654 | 0.231 | 0.707 |
+| XGBoost | 0.730 | 0.185 | 0.690 | 0.292 | 0.781 |
 
-Best saved model:
 
-- `models/home_credit_xgboost.joblib`
+**Best Saved Model:** `models/home_credit_xgboost.joblib`
 
-Threshold tuning:
+### Threshold Tuning
 
-- Best F1 threshold: `0.70`
-- Business-friendly threshold: `0.55`
+- Best F1 Threshold: `0.70`
+- Business Threshold: `0.55`
 
-Interpretation:
-
-- `0.70` is the stronger balanced threshold for the best model if you care more about F1.
-- `0.55` is a more recall-friendly business threshold that still keeps precision above `0.20`.
+The model achieved its highest F1 score at a threshold of 0.70. A lower threshold of 0.55 improves recall and may be preferable when minimizing missed defaults is more important than precision.
 
 ## Project Screenshots
 
@@ -160,26 +137,3 @@ Launch the Streamlit demo:
 streamlit run app.py
 ```
 
-## How To Talk About This On Your Resume
-
-Example wording:
-
-- Built a credit-risk default prediction pipeline on Kaggle Home Credit data using multi-table feature engineering across application, bureau, installment, POS cash, and credit card histories.
-- Evaluated Logistic Regression, Random Forest, and XGBoost on an imbalanced credit-risk dataset, achieving a best ROC-AUC of `0.781` with threshold tuning for lending tradeoffs.
-- Developed a Streamlit-based demo, EDA workflow, model card, feature-importance report, and portfolio-ready visuals to communicate borrower risk patterns and model behavior to non-technical stakeholders.
-
-## Honest Assessment
-
-Yes, this is strong enough to put on your resume for data science internships.
-
-Why:
-
-- it uses a recognized dataset
-- it goes beyond beginner one-file modeling
-- it shows feature engineering, evaluation maturity, and product thinking
-
-What would make it even stronger later:
-
-- SHAP-based explanations for individual applicants
-- fairness analysis across demographic proxy groups
-- a short presentation deck or screenshots captured from the running Streamlit app
