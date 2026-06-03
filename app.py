@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 import joblib
+import numpy as np
 import pandas as pd
 import streamlit as st
 from sklearn.compose import ColumnTransformer
@@ -143,29 +144,52 @@ def get_model_or_stop(best_model_path: str | None):
         return train_cloud_fallback_model(), "cloud_fallback_logistic"
 
 
-def get_required_features(model) -> list[str]:
+def get_model_feature_groups(model) -> tuple[list[str], list[str]]:
     preprocessor = model.named_steps["preprocessor"]
-    required_features: list[str] = []
-    for _, _, columns in preprocessor.transformers_:
-        required_features.extend(list(columns))
-    return required_features
+    feature_groups: dict[str, list[str]] = {"num": [], "cat": []}
+    for name, _, columns in preprocessor.transformers_:
+        if name in feature_groups:
+            feature_groups[name].extend(list(columns))
+    return feature_groups["num"], feature_groups["cat"]
 
 
-def prepare_scoring_data(input_df: pd.DataFrame, required_features: list[str]) -> tuple[pd.DataFrame, list[str]]:
+def get_required_features(model) -> list[str]:
+    numeric_features, categorical_features = get_model_feature_groups(model)
+    return numeric_features + categorical_features
+
+
+def prepare_scoring_data(
+    input_df: pd.DataFrame,
+    numeric_features: list[str],
+    categorical_features: list[str],
+) -> tuple[pd.DataFrame, list[str], list[str]]:
     scoring_df = input_df.copy()
     if "TARGET" in scoring_df.columns:
         scoring_df = scoring_df.drop(columns=["TARGET"])
 
+    required_features = numeric_features + categorical_features
     missing_features = [column for column in required_features if column not in scoring_df.columns]
-    for column in missing_features:
-        scoring_df[column] = pd.NA
+    if missing_features:
+        missing_df = pd.DataFrame(np.nan, index=scoring_df.index, columns=missing_features)
+        scoring_df = pd.concat([scoring_df, missing_df], axis=1)
 
-    return scoring_df[required_features], missing_features
+    coerced_numeric_features = []
+    for column in numeric_features:
+        original_missing_count = scoring_df[column].isna().sum()
+        scoring_df[column] = pd.to_numeric(scoring_df[column], errors="coerce")
+        if scoring_df[column].isna().sum() > original_missing_count:
+            coerced_numeric_features.append(column)
+
+    for column in categorical_features:
+        scoring_df[column] = scoring_df[column].astype("object")
+        scoring_df.loc[scoring_df[column].isna(), column] = np.nan
+
+    return scoring_df[required_features], missing_features, coerced_numeric_features
 
 
 def score_applicants(input_df: pd.DataFrame, model, threshold: float) -> tuple[pd.DataFrame, list[str]]:
-    required_features = get_required_features(model)
-    scoring_df, missing_features = prepare_scoring_data(input_df, required_features)
+    numeric_features, categorical_features = get_model_feature_groups(model)
+    scoring_df, missing_features, _ = prepare_scoring_data(input_df, numeric_features, categorical_features)
     probabilities = model.predict_proba(scoring_df)[:, 1]
 
     output_df = input_df.copy()
@@ -297,9 +321,34 @@ def render_batch_scoring(model, demo_df: pd.DataFrame, threshold: float, active_
         st.info("No upload yet. The demo portfolio below shows the same scoring workflow on sample applicants.")
         input_df = demo_df.drop(columns=["TARGET"], errors="ignore").head(250)
     else:
-        input_df = pd.read_csv(uploaded_file)
+        try:
+            input_df = pd.read_csv(uploaded_file)
+        except Exception as exc:
+            st.error(f"Could not read the uploaded CSV: {exc}")
+            return
 
-    scored_df, missing_features = score_applicants(input_df, model, threshold)
+        required_features = get_required_features(model)
+        matched_features = [column for column in required_features if column in input_df.columns]
+        if not matched_features:
+            st.error(
+                "This CSV does not match the scoring template. Upload a borrower-level Home Credit file "
+                "with model feature columns, or download the template above and map your export to it."
+            )
+            return
+        if len(matched_features) / len(required_features) < 0.1:
+            st.warning(
+                f"Only {len(matched_features)} of {len(required_features)} model features were found in the upload. "
+                "Scores may be unreliable until more engineered fields are included."
+            )
+
+    try:
+        scored_df, missing_features = score_applicants(input_df, model, threshold)
+    except Exception as exc:
+        st.error(
+            "The uploaded CSV could not be scored. Download the scoring template and make sure numeric fields "
+            f"contain numbers only. Details: {exc}"
+        )
+        return
 
     if missing_features:
         st.warning(
